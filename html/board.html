@@ -1,16 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Click Fast</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
- <div id="timer"></div>
 
- <div class="btns" id = "board">
- </div>
- <button id="startGame">start the game</button>
- <script src="/js/index.js"></script>
+<body>
+
+    <div class="game-container">
+        <header class="game-header">
+            <h1>Click Fast</h1>
+            <div class="timer-box">
+                Time: <span id="timer">10</span>s
+            </div>
+        </header>
+            <p>Config : </p>
+        <div class="options-menu">
+            <label for="boardSize">Board Size:</label>
+            <select id="boardSize">
+                <option value="" disabled selected>Select the board size</option>
+                <option value="3">3 x 3</option>
+                <option value="4">4 x 4</option>
+                <option value="5">5 x 5</option>
+            </select>
+        </div>
+              <div class="options-menu">
+            <label for="boardSize">Game mode : </label>
+            <select id="boardSize">
+                <option value="" disabled selected>Select the game mode</option>
+                <option value="stantard">stantard</option>
+                <option value="pressesion">pressesion</option>
+            </select>
+        </div>
+        <div class="btns" id="board">
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>            
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+        </div>
+
+        <button id="startGame" class="btn-primary">Start The Game</button>
+
+        <div class="results-card">
+            <h3>Result Summary</h3>
+            <div class="stats-grid">
+                <p id="totalAttemps">Total attempts: 0</p>
+                <p id="correctClick">Correct clicks: 0</p>
+                <p id="missClick">Miss clicks: 0</p>
+                <p id="ignoredClick">ignored clicks: 0</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/index.js"></script>
 </body>
+
 </html>

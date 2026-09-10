@@ -1,99 +1,209 @@
 let btnsContainer = document.querySelector(".btns");
+let totalAttempsResult = document.getElementById("totalAttemps");
+let correctClickResult = document.getElementById("correctClick");
+let missClickResult = document.getElementById("missClick");
 const timer = document.querySelector("#timer");
 let startGameBtn = document.getElementById("startGame");
-let btns = btnsContainer.children;
-let randomIndex = Math.floor(Math.random() * btns.length);
-let board = document.getElementById("board")
+let board = document.getElementById("board");
+let boardSize = document.getElementById("boardSize");
+let ignoredClickResult = document.getElementById("ignoredClick");
 let btnActivationCount = 0;
 let userClicksCount = 0;
 let currentBtn = null;
+let currentIndex = null;
+let previousIndex = null;
 let correctClick = 0;
 let wrongClick = 0;
-function getRandomNumber() {
-    return Math.floor(Math.random() * btnsCount) + 1;;
+let ignoredClickCount = 0;
+let targetClicked = false;
+let pintTime = null;
+let countdownInterval = null;
+let BtnsRandomIndexes = [];
+//fax 4ay dir pressesion 4ay khasni n7ayd delay dyal tsba4 dyal btn ou fax ykliki n3ayt 3La lfunction pint 
+startGameBtn.addEventListener("click", () => {
+    startGame();
+    setTime(10);
+});
+
+boardSize.addEventListener("change", () => {
+    makeTheBoard(boardSize.value || 3);
+});
+
+btnsContainer.addEventListener("click", function (e) {
+    if (e.target.tagName === "BUTTON" && !e.target.disabled) {
+        if (currentBtn === e.target) {
+            userClicksCount++;
+            correctClick++;
+            targetClicked = true;
+            e.target.style.backgroundColor = "gray";
+            e.target.disabled = true;
+            currentBtn = null;
+        } else if (currentBtn !== null) {
+            userClicksCount++;
+            targetClicked = true;
+            wrongClick++;
+            e.target.style.backgroundColor = "gray";
+            e.target.disabled = true;
+        }
+    }
+});
+
+function showResult() {
+    missClickResult.textContent = "Miss clicks: " + wrongClick;
+    correctClickResult.textContent = "Correct clicks: " + correctClick;
+    totalAttempsResult.textContent = "Total attempts: " + userClicksCount;
+    ignoredClickResult.textContent = "Ignored clicks: " + ignoredClickCount;
 }
+
+function resetTheGame() {
+    missClickResult.textContent = "";
+    correctClickResult.textContent = "";
+    totalAttempsResult.textContent = "";
+    ignoredClickResult.textContent = "";
+}
+
+function startGame() {
+      for (let btn of btnsContainer.children) {
+      btn.style.backgroundColor = "white";
+      btn.style.disabled = "false";
+    }
+    wrongClick = 0;
+    correctClick = 0;
+    userClicksCount = 0;
+    btnActivationCount = 0;
+    ignoredClickCount = 0;
+    targetClicked = false;
+    currentIndex = null;
+    previousIndex = null;
+    pushTheArrayOfRandomsIndex();
+}
+
 function pintTheBtn(time = 10) {
-    let currentTime = time;
     let previousBtn = null;
-    let interval = setInterval(function () {
-        if ((time - currentTime) % 3 === 0) {
-            if (previousBtn !== null) {
+    let btns = btnsContainer.children;
+
+    if (pintTime) clearInterval(pintTime);
+
+    targetClicked = false;
+
+    pintTime = setInterval(function () {
+        if (previousBtn !== null && !targetClicked) {
+            ignoredClickCount++;
+            previousBtn.style.backgroundColor = "gray";
+            previousBtn.disabled = true;
+        }
+
+        targetClicked = false;
+
+        if (previousBtn !== null) {
+            if (previousBtn.style.backgroundColor !== "gray") {
                 previousBtn.style.backgroundColor = "white";
-                console.log("change to white");
+                previousBtn.disabled = false;
+                removeThePreviousIndex(previousIndex);
             }
-            let random = getRandomNumber();
-            currentBtn = btns[random];
-            currentBtn.style.backgroundColor = "black"; //probleme 
+        }
+
+        if (BtnsRandomIndexes.length === 0) {
+            clearInterval(pintTime);
+            return;
+        }
+
+        let random = getRandomIndex();
+        previousIndex = currentIndex;
+        currentIndex = random;
+        currentBtn = btns[random];
+
+        if (currentBtn) {
+            currentBtn.style.backgroundColor = "red";
             previousBtn = currentBtn;
             btnActivationCount++;
-            console.log(btnActivationCount);
         }
+    }, 800);
+}
 
-        currentTime--;
+function getRandomIndex() {
+    if (BtnsRandomIndexes.length === 0) {
+        pushTheArrayOfRandomsIndex();
+    }
+    let randomIndex = Math.floor(Math.random() * BtnsRandomIndexes.length);
+    return BtnsRandomIndexes.splice(randomIndex, 1)[0];
+}
 
-        if (currentTime === 0) {
-            clearInterval(interval);
+function removeThePreviousIndex(index) {
+    let btns = btnsContainer.children;
+    if (index !== null && btns[index] && btns[index].style.backgroundColor !== "gray" && !BtnsRandomIndexes.includes(index)) {
+        BtnsRandomIndexes.push(index);
+    }
+}
 
-            if (previousBtn !== null) {
-                previousBtn.style.backgroundColor = "white";
-            }
+function pushTheArrayOfRandomsIndex() {
+    BtnsRandomIndexes = [];
+    let btns = btnsContainer.children;
+    for (let i = 0; i < btns.length; i++) {
+        if (btns[i].style.backgroundColor !== "gray") {
+            BtnsRandomIndexes.push(i);
         }
-
-    }, 1000);
+    }
 }
 
 function disableBtns() {
-    for (let btn of btns) {
+    for (let btn of btnsContainer.children) {
         btn.disabled = true;
     }
 }
+
 function enableBtns() {
-    for (let btn of btns) {
-        btn.disabled = false;
+    for (let btn of btnsContainer.children) {
+        if (btn.style.backgroundColor !== "gray") {
+            btn.disabled = false;
+        }
     }
 }
+
 function setTime(time = 10) {
-    pintTheBtn();
+    pintTheBtn(time);
     startGameBtn.disabled = true;
     timer.textContent = time;
     enableBtns();
-    const countdown = setInterval(function () {
+
+    if (countdownInterval) clearInterval(countdownInterval);
+
+    countdownInterval = setInterval(function () {
         time--;
         timer.textContent = time;
 
         if (time === 0) {
+            clearInterval(countdownInterval);
+            clearInterval(pintTime);
+
+            if (currentBtn !== null && !targetClicked) {
+                ignoredClickCount++;
+                currentBtn.style.backgroundColor = "gray";
+                currentBtn.disabled = true;
+            }
+
+            if (currentBtn !== null) {
+                currentBtn = null;
+            }
+
             startGameBtn.disabled = false;
-            clearInterval(countdown);
-            console.log("right: " + correctClick);
-            console.log("wrong: " + wrongClick);
             disableBtns();
+            showResult();
         }
     }, 1000);
 }
-startGameBtn.addEventListener("click", () => {
-    setTime();
-});
-for (let i = 0; i < 16; i++) {
-    let btn = document.createElement("button");
-    btn.style.padding = "30px";
-    btn.style.backgroundColor = "white";
-    btnsContainer.appendChild(btn);
-    btn.disabled = true;
-}
-let btnsCount = board.childElementCount;
-console.log(btnsCount);
-for (let btn of btns) {
-    btn.addEventListener("click", function () {
-        userClicksCount++;
-        if (currentBtn == btn) {
-            console.log("correct");
-            correctClick++;
-        }
-        else {
-            wrongClick++;
-            console.log("false");
-        }
-        console.log(userClicksCount);
+
+function makeTheBoard(size) {
+    btnsContainer.textContent = "";
+    for (let i = 0; i < size * size; i++) {
+        let btn = document.createElement("button");
+        btn.style.padding = "30px";
+        btn.style.backgroundColor = "white";
+        btnsContainer.appendChild(btn);
         btn.disabled = true;
-    });
+    }
+    pushTheArrayOfRandomsIndex();
 }
+
+makeTheBoard(3);
+disableBtns();
