@@ -13,12 +13,24 @@
 
     <div class="game-container">
         <header class="game-header">
+            <a href="home.html" class="home-btn" title="Back to Home">&larr;</a>
             <h1>Click Fast</h1>
             <div class="timer-box">
                 Time: <span id="timer">10</span>s
             </div>
         </header>
-            <p>Config : </p>
+        <form id="config">
+        <p>Config : </p>
+        <input type="text" id="username" placeholder="username">
+        <div class="options-menu">
+            <label for="time">time</label>
+            <select id="gameTime">
+                <option value="" disabled selected>Select the time</option>
+                <option value="10">10s</option>
+                <option value="7">7s</option>
+                <option value="4">4</option>
+            </select>
+        </div>
         <div class="options-menu">
             <label for="boardSize">Board Size:</label>
             <select id="boardSize">
@@ -28,14 +40,15 @@
                 <option value="5">5 x 5</option>
             </select>
         </div>
-              <div class="options-menu">
+        <div class="options-menu">
             <label for="boardSize">Game mode : </label>
-            <select id="boardSize">
+            <select id="mode">
                 <option value="" disabled selected>Select the game mode</option>
                 <option value="stantard">stantard</option>
-                <option value="pressesion">pressesion</option>
+                <option value="precision">precision</option>
             </select>
         </div>
+        </form>
         <div class="btns" id="board">
             <button></button>
             <button></button>
@@ -46,7 +59,7 @@
             <button></button>
             <button></button>
             <button></button>
-            <button></button>            
+            <button></button>
             <button></button>
             <button></button>
             <button></button>
@@ -73,6 +86,7 @@
                 <p id="correctClick">Correct clicks: 0</p>
                 <p id="missClick">Miss clicks: 0</p>
                 <p id="ignoredClick">ignored clicks: 0</p>
+                <p id="clickPerSecond"></p>
             </div>
         </div>
     </div>
