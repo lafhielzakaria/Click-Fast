@@ -14,14 +14,14 @@
     <div class="game-container">
         <header class="game-header">
             <a href="home.html" class="home-btn" title="Back to Home">&larr;</a>
-            <h1>Click Fast</h1>
+            <h1 id="gameName">Click Fast</h1>
             <div class="timer-box">
                 Time: <span id="timer">10</span>s
             </div>
         </header>
         <form id="config">
         <p>Config : </p>
-        <input type="text" id="username" placeholder="username">
+        <input required type="text" id="username" placeholder="username">
         <div class="options-menu">
             <label for="time">time</label>
             <select id="gameTime">

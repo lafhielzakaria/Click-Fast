@@ -8,6 +8,7 @@ let startGameBtn = document.getElementById("startGame");
 let board = document.getElementById("board");
 let boardSize = document.getElementById("boardSize");
 let ignoredClickResult = document.getElementById("ignoredClick");
+let usernameInput = document.getElementById("username");
 let btnActivationCount = 0;
 let userClicksCount = 0;
 let currentBtn = null;
@@ -24,81 +25,168 @@ let modeSelected = "stantard";
 let gameTimer = 10;
 let modeSection = document.getElementById("mode");
 let timeSelected;
+let speed = 0;
+let configForm = document.getElementById("config");
 let clickPerSecond = document.getElementById("clickPerSecond");
-startGameBtn.addEventListener("click", () => {
-    startGame();
-    setTime(timeSelected || 10);
-});
 
-gameTime.addEventListener("change", () => {
-    timeSelected = gameTime.value;
-    timer.textContent = timeSelected;
-});
+if (startGameBtn) {
+    startGameBtn.addEventListener("click", () => {
+        startGame();
+        setTime(timeSelected || 10);
+    });
+}
 
-modeSection.addEventListener('change', () => {
-    modeSelected = modeSection.value;
-});
-
-boardSize.addEventListener("change", () => {
-    makeTheBoard(boardSize.value || 3);
-});
-
-btnsContainer.addEventListener("click", function (e) {
-    if (e.target.tagName === "BUTTON" && !e.target.disabled) {
-        if (currentBtn === e.target) {
-            userClicksCount++;
-            correctClick++;
-            targetClicked = true;
-            e.target.style.backgroundColor = "gray";
-            e.target.disabled = true;
-            currentBtn = null;
-        } else if (currentBtn !== null) {
-            userClicksCount++;
-            targetClicked = true;
-            wrongClick++;
-            currentBtn.style.backgroundColor = "gray";
-            currentBtn.disabled = true;
-
-            e.target.style.backgroundColor = "gray";
-            e.target.disabled = true;
-            currentBtn = null;
+if (gameTime) {
+    gameTime.addEventListener("change", () => {
+        timeSelected = gameTime.value;
+        if (timer) {
+            timer.textContent = timeSelected;
         }
+    });
+}
 
-        if (modeSelected === "precision") {
-            if (BtnsRandomIndexes.length > 0) {
-                pintTheBtn();
+if (modeSection) {
+    modeSection.addEventListener('change', () => {
+        modeSelected = modeSection.value;
+    });
+}
+
+if (boardSize) {
+    boardSize.addEventListener("change", () => {
+        makeTheBoard(boardSize.value || 3);
+    });
+}
+
+if (btnsContainer) {
+    btnsContainer.addEventListener("click", function (e) {
+        if (e.target.tagName === "BUTTON" && !e.target.disabled) {
+            if (currentBtn === e.target) {
+                userClicksCount++;
+                correctClick++;
+                targetClicked = true;
+                e.target.style.backgroundColor = "gray";
+                e.target.disabled = true;
+                currentBtn = null;
+            } else if (currentBtn !== null) {
+                userClicksCount++;
+                targetClicked = true;
+                wrongClick++;
+                currentBtn.style.backgroundColor = "gray";
+                currentBtn.disabled = true;
+                e.target.style.backgroundColor = "gray";
+                e.target.disabled = true;
+                currentBtn = null;
+            }
+
+            if (modeSelected === "precision") {
+                if (BtnsRandomIndexes.length > 0) {
+                    pintTheBtn();
+                }
             }
         }
+    });
+}
+
+function getData() {
+    let records = JSON.parse(localStorage.getItem("gameRecords")) || [];
+    return records;
+}
+
+function displayGameHistory() {
+    const container = document.getElementById("gamesHistoryList");
+    if (!container) return;
+    const records = getData();
+    container.innerHTML = "";
+
+    if (records.length === 0) {
+        container.innerHTML = `<div class="no-records">No games played yet! Play a game to see your history.</div>`;
+        return;
     }
-});
+
+    records.forEach((game, index) => {
+        const card = document.createElement("div");
+        card.className = "game-card";
+
+        card.innerHTML = `
+            <div class="game-card-header">
+                <span>Game ${index + 1} ${game.username || ""}</span>
+                <span style="font-weight: normal; font-size: 13px; color: #888;">${game.date}</span>
+            </div>
+            <div class="game-card-details">
+                <div>Mode: <strong>${game.mode}</strong></div>
+                <div>Board Size: <strong>${game.boardSize}x${game.boardSize}</strong></div>
+                <div>Correct Clicks: <strong style="color: green;">${game.correctClicks}</strong></div>
+                <div>Miss Clicks: <strong style="color: red;">${game.missClicks}</strong></div>
+                <div>Total Attempts: <strong>${game.totalAttempts}</strong></div>
+                <div>Ignored Clicks: <strong>${game.ignoredClicks}</strong></div>
+            </div>
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+if (document.getElementById("gamesHistoryList")) {
+    displayGameHistory();
+}
 
 function showResult() {
-    missClickResult.textContent = "Miss clicks : " + wrongClick;
-    correctClickResult.textContent = "Correct clicks : " + correctClick;
-    totalAttempsResult.textContent = "Total attempts : " + userClicksCount;
-    ignoredClickResult.textContent = "Ignored clicks :  " + ignoredClickCount;
-    if (modeSelected = "precision") {
-        let speed = gameTimer / userClicksCount;
-        speed = speed.toFixed(2).replace(".", ",");
-        clickPerSecond.textContent = "click per second : " + speed;
-        console.log(clickPerSecond.textContent);
+    if (missClickResult) missClickResult.textContent = "Miss clicks : " + wrongClick;
+    if (correctClickResult) correctClickResult.textContent = "Correct clicks : " + correctClick;
+    if (totalAttempsResult) totalAttempsResult.textContent = "Total attempts : " + userClicksCount;
+    if (ignoredClickResult) ignoredClickResult.textContent = "Ignored clicks :  " + ignoredClickCount;
 
+    if (clickPerSecond) {
+        if (modeSelected == "precision") {
+            speed = (timeSelected || 10) / userClicksCount;
+            if (isNaN(speed)) speed = 0;
+            let speedFormatted = speed.toFixed(2).replace(".", ",");
+            clickPerSecond.textContent = "click per second : " + speedFormatted;
+        } else {
+            speed = 0;
+            clickPerSecond.textContent = "";
+        }
     }
+
+    saveGameResult();
+}
+
+function saveGameResult() {
+    let gameData = {
+        username: usernameInput ? usernameInput.value : "",
+        time: timeSelected || 10,
+        boardSize: boardSize ? (boardSize.value || 3) : 3,
+        mode: modeSelected,
+        correctClicks: correctClick,
+        missClicks: wrongClick,
+        totalAttempts: userClicksCount,
+        ignoredClicks: ignoredClickCount,
+        clickPerSecond: typeof speed === "number" ? speed.toFixed(2) : "0.00",
+        date: new Date().toLocaleDateString()
+    };
+    let existingRecords = JSON.parse(localStorage.getItem("gameRecords")) || [];
+    existingRecords.push(gameData);
+    localStorage.setItem("gameRecords", JSON.stringify(existingRecords));
 }
 
 function resetTheGame() {
-    missClickResult.textContent = "";
-    correctClickResult.textContent = "";
-    totalAttempsResult.textContent = "";
-    ignoredClickResult.textContent = "";
+    if (missClickResult) missClickResult.textContent = "";
+    if (correctClickResult) correctClickResult.textContent = "";
+    if (totalAttempsResult) totalAttempsResult.textContent = "";
+    if (ignoredClickResult) ignoredClickResult.textContent = "";
+    if (clickPerSecond) clickPerSecond.textContent = "";
+    if (configForm) configForm.style.display = "block";
     disableBtns();
 }
 
 function startGame() {
-    for (let btn of btnsContainer.children) {
-        btn.style.backgroundColor = "white";
-        btn.disabled = false;
+    if (btnsContainer) {
+        for (let btn of btnsContainer.children) {
+            btn.style.backgroundColor = "white";
+            btn.disabled = false;
+        }
     }
+    if (configForm) configForm.style.display = "none";
     wrongClick = 0;
     correctClick = 0;
     userClicksCount = 0;
@@ -112,6 +200,7 @@ function startGame() {
 }
 
 function pintTheBtn(gameTimer) {
+    if (!btnsContainer) return;
     let btns = btnsContainer.children;
     if (modeSelected === "precision") {
         if (BtnsRandomIndexes.length === 0) return;
@@ -171,6 +260,7 @@ function getRandomIndex() {
 }
 
 function removeThePreviousIndex(index) {
+    if (!btnsContainer) return;
     let btns = btnsContainer.children;
     if (index !== null && btns[index] && btns[index].style.backgroundColor !== "gray" && !BtnsRandomIndexes.includes(index)) {
         BtnsRandomIndexes.push(index);
@@ -179,6 +269,7 @@ function removeThePreviousIndex(index) {
 
 function pushTheArrayOfRandomsIndex() {
     BtnsRandomIndexes = [];
+    if (!btnsContainer) return;
     let btns = btnsContainer.children;
     for (let i = 0; i < btns.length; i++) {
         if (btns[i].style.backgroundColor !== "gray") {
@@ -188,6 +279,7 @@ function pushTheArrayOfRandomsIndex() {
 }
 
 function disableBtns() {
+    if (!btnsContainer) return;
     for (let btn of btnsContainer.children) {
         btn.disabled = true;
         btn.style.backgroundColor = "white";
@@ -195,6 +287,7 @@ function disableBtns() {
 }
 
 function enableBtns() {
+    if (!btnsContainer) return;
     for (let btn of btnsContainer.children) {
         if (btn.style.backgroundColor !== "gray") {
             btn.disabled = false;
@@ -202,20 +295,20 @@ function enableBtns() {
     }
 }
 
-function setTime(gameTimer = timeSelected) {
-    console.log(gameTimer);
-    pintTheBtn(gameTimer);
-    startGameBtn.disabled = true;
-    timer.textContent = gameTimer;
+function setTime(gameTimerVal = timeSelected || 10) {
+    let activeTimer = gameTimerVal;
+    pintTheBtn(activeTimer);
+    if (startGameBtn) startGameBtn.disabled = true;
+    if (timer) timer.textContent = activeTimer;
     enableBtns();
 
     if (countdownInterval) clearInterval(countdownInterval);
 
     countdownInterval = setInterval(function () {
-        gameTimer--;
-        timer.textContent = gameTimer;
+        activeTimer--;
+        if (timer) timer.textContent = activeTimer;
 
-        if (gameTimer === 0) {
+        if (activeTimer === 0) {
             clearInterval(countdownInterval);
             clearInterval(pintTime);
             resetTheGame();
@@ -229,7 +322,7 @@ function setTime(gameTimer = timeSelected) {
                 currentBtn = null;
             }
 
-            startGameBtn.disabled = false;
+            if (startGameBtn) startGameBtn.disabled = false;
             disableBtns();
             showResult();
         }
@@ -237,7 +330,9 @@ function setTime(gameTimer = timeSelected) {
 }
 
 function makeTheBoard(size) {
+    if (!btnsContainer) return;
     btnsContainer.textContent = "";
+    btnsContainer.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
     for (let i = 0; i < size * size; i++) {
         let btn = document.createElement("button");
         btn.style.padding = "30px";
@@ -248,5 +343,7 @@ function makeTheBoard(size) {
     pushTheArrayOfRandomsIndex();
 }
 
-makeTheBoard(3);
-disableBtns();
+if (btnsContainer) {
+    makeTheBoard(3);
+    disableBtns();
+}
